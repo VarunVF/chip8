@@ -43,6 +43,8 @@ void chip8_init(Chip8* chip8);
 int chip8_load_rom(Chip8* chip8, const char* file_path);
 void chip8_emulate_cycle(Chip8* chip8);
 void chip8_update_timers(Chip8* chip8, double delta_time);
+void chip8_update_graphics(Chip8* chip8, int scale);
+void chip8_update_keys(Chip8* chip8);
 Chip8InstructionFunc chip8_decode(Chip8* chip8, uint16_t opcode);
 
 #endif // CHIP8_H

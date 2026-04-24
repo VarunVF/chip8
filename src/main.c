@@ -33,21 +33,12 @@ int main(int argc, char* argv[])
     SetTargetFPS(TARGET_FPS);
 
     while (!WindowShouldClose()) {
+        chip8_update_keys(&chip8);
         for (int i = 0; i < CHIP8_CYCLES_PER_SECOND / TARGET_FPS; i++) {
             chip8_emulate_cycle(&chip8);
         }
         chip8_update_timers(&chip8, GetFrameTime());
-
-        BeginDrawing();
-        ClearBackground(BLACK);
-        for (int y = 0; y < 32; y++) {
-            for (int x = 0; x < 64; x++) {
-                if (chip8.display[y * 64 + x]) {
-                    DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, WHITE);
-                }
-            }
-        }
-        EndDrawing();
+        chip8_update_graphics(&chip8, SCALE);
     }
 
     CloseWindow();

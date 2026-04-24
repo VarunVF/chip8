@@ -5,9 +5,11 @@
 #include <string.h>
 #include <time.h>
 
+#include "raylib.h"
+
 #include "chip8_op.h"
 
-uint8_t fontset[80] = {
+const uint8_t fontset[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -24,6 +26,26 @@ uint8_t fontset[80] = {
     0xE0, 0x90, 0x90, 0x90, 0xE0, // D
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+// Array of physical keys in the order of CHIP-8 hex indices (0-F)
+const int key_map[16] = {
+    KEY_X,    // 0
+    KEY_ONE,  // 1
+    KEY_TWO,  // 2
+    KEY_THREE,// 3
+    KEY_Q,    // 4
+    KEY_W,    // 5
+    KEY_E,    // 6
+    KEY_A,    // 7
+    KEY_S,    // 8
+    KEY_D,    // 9
+    KEY_Z,    // A
+    KEY_C,    // B
+    KEY_FOUR, // C
+    KEY_R,    // D
+    KEY_F,    // E
+    KEY_V     // F
 };
 
 
@@ -116,6 +138,30 @@ void chip8_update_timers(Chip8* chip8, double delta_time)
         }
 
         chip8->timer_accumulator -= 1.0 / CHIP8_TIMER_FREQ;
+    }
+}
+
+void chip8_update_graphics(Chip8* chip8, int scale)
+{
+    BeginDrawing();
+    ClearBackground(BLACK);
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 64; x++) {
+            if (chip8->display[y * 64 + x]) {
+                DrawRectangle(x * scale, y * scale, scale, scale, WHITE);
+            }
+        }
+    }
+    EndDrawing();
+}
+
+void chip8_update_keys(Chip8* chip8) {
+    for (int i = 0; i < 16; i++) {
+        if (IsKeyDown(key_map[i])) {
+            chip8->keys[i] = 1;
+        } else {
+            chip8->keys[i] = 0;
+        }
     }
 }
 
