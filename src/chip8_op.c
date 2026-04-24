@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Macro for standard PC increment
 #define NEXT chip8->PC += 2
@@ -28,6 +29,8 @@
 void chip8_op_clear_display(Chip8* chip8, uint16_t opcode)
 {
     printf("CLS\n");
+
+    memset(chip8->display, 0, sizeof(chip8->display));
     NEXT;
 }
 void chip8_op_return(Chip8* chip8, uint16_t opcode)
@@ -275,6 +278,36 @@ void chip8_op_set_Vx_to_rand_and_NN(Chip8* chip8, uint16_t opcode)
 void chip8_op_draw(Chip8* chip8, uint16_t opcode)
 {
     printf("DRAW Vx, Vy, 0x%1X\n", N(opcode));
+
+    // Draw a sprite at coordinate (Vx, Vy) with a width of 8 px and a height of N px.
+    // Each row of 8 pixels is read as bit-coded starting from memory location I.
+    // VF is set to 1 if any screen pixels were flipped from set to unset.
+    // VF is set to 0 otherwise.
+
+    uint8_t x = chip8->V[X(opcode)] % 64;
+    uint8_t y = chip8->V[Y(opcode)] % 32;
+    uint8_t height = N(opcode);
+
+    chip8->V[0xF] = 0; // Reset collision flag
+
+    for (int row = 0; row < height; row++) {
+        uint8_t sprite_byte = chip8->memory[chip8->I + row];
+        for (int col = 0; col < 8; col++) {
+            if ((sprite_byte & (0x80 >> col)) != 0) {
+                // Modulo ensures pixels wrap around the screen
+                int screen_idx = ((y + row) % 32) * 64 + ((x + col) % 64);
+
+                // Collision check
+                if (chip8->display[screen_idx] == 1) {
+                    chip8->V[0xF] = 1;
+                }
+
+                // XOR the display pixel (allows transparency and erasing)
+                chip8->display[screen_idx] ^= 1;
+            }
+        }
+    }
+
     NEXT;
 }
 
@@ -325,7 +358,11 @@ void chip8_op_add_Vx_to_I(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_I_to_sprite_address_in_Vx(Chip8* chip8, uint16_t opcode)
 {
-    printf("LD F, Vx\n");
+    printf("LDSPR, Vx\n");
+
+    // Ensure each character is in 0x0 to 0xF
+    uint8_t character = chip8->V[X(opcode)];
+    chip8->I = (character & 0x0F) * 5;
     NEXT;
 }
 void chip8_op_store_Vx_as_BCD_at_address_in_I(Chip8* chip8, uint16_t opcode)
