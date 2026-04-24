@@ -189,14 +189,16 @@ void chip8_op_add_Vy_to_Vx(Chip8* chip8, uint16_t opcode)
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
     uint16_t sum = chip8->V[x] + chip8->V[y];
+
+    // Perform the addition first
+    chip8->V[x] += chip8->V[y];
+
+    // Set VF
     if (sum > 255) {
         chip8->V[0xF] = 1;
     } else {
         chip8->V[0xF] = 0;
     }
-
-    // Perform the actual addition
-    chip8->V[x] += chip8->V[y];
 
     NEXT;
 }
@@ -210,14 +212,17 @@ void chip8_op_subtract_Vy_from_Vx(Chip8* chip8, uint16_t opcode)
     // i.e. VF set to 1 if VX >= VY and 0 if not.
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
-    if (chip8->V[x] >= chip8->V[y]) {
+    uint8_t should_set_VF = chip8->V[x] >= chip8->V[y];
+
+    // Perform the subtraction first
+    chip8->V[x] -= chip8->V[y];
+
+    // Set VF
+    if (should_set_VF) {
         chip8->V[0xF] = 1;
     } else {
         chip8->V[0xF] = 0;
     }
-
-    // Perform the actual subtraction
-    chip8->V[x] -= chip8->V[y];
 
     NEXT;
 }
@@ -227,12 +232,15 @@ void chip8_op_right_shift_Vx(Chip8* chip8, uint16_t opcode)
     printf("SHR Vx\n");
 #endif
 
-    // Store the bit that is about to be 'dropped' in VF before shifting
+    // Store the bit that is about to be 'dropped'
     uint8_t x = X(opcode);
-    chip8->V[0xF] = chip8->V[x] & 1;            // LSB of Vx
+    uint8_t dropped = chip8->V[x] & 1;            // LSB of Vx
 
-    // Perform the actual shift
+    // Perform the shift
     chip8->V[x] >>= 1;
+
+    // Set VF
+    chip8->V[0xF] = dropped;
 
     NEXT;
 }
@@ -245,15 +253,19 @@ void chip8_op_set_Vx_to_Vy_minus_Vx(Chip8* chip8, uint16_t opcode)
     // VF set to 1 if VY >= VX, or 0 otherwise.
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
-    if (chip8->V[y] >= chip8->V[x]) {
+    uint8_t should_set_VF = chip8->V[y] >= chip8->V[x];
+
+
+    // Perform the subtraction first
+    chip8->V[x] = chip8->V[y] - chip8->V[x];
+
+    // Set VF
+    if (should_set_VF) {
         chip8->V[0xF] = 1;
     }
     else {
         chip8->V[0xF] = 0;
     }
-
-    // Perform the actual subtraction
-    chip8->V[x] = chip8->V[y] - chip8->V[x];
 
     NEXT;
 }
@@ -265,10 +277,13 @@ void chip8_op_left_shift_Vx(Chip8* chip8, uint16_t opcode)
 
     // Store the bit that is about to be 'dropped' in VF before shifting
     uint8_t x = X(opcode);
-    chip8->V[0xF] = chip8->V[x] & 128;          // MSB of Vx
+    uint8_t dropped = chip8->V[x] & 0b1000'0000;          // MSB of Vx
 
-    // Perform the actual shift
+    // Perform the shift
     chip8->V[x] <<= 1;
+
+    // Set VF
+    chip8->V[0xF] = dropped >> 7;
 
     NEXT;
 }
