@@ -46,7 +46,6 @@ void chip8_op_return(Chip8* chip8, uint16_t opcode)
     chip8->SP -= 1;								// point to the last saved address
     chip8->PC = chip8->stack[chip8->SP] + 2;	// move past the original call instruction
     chip8->stack[chip8->SP] = 0;				// clear the old address (for debugging)
-    NEXT;
 }
 
 // Basic Flow
@@ -70,7 +69,6 @@ void chip8_op_call(Chip8* chip8, uint16_t opcode)
     chip8->stack[chip8->SP] = chip8->PC;		// save return address
     chip8->SP += 1;
     chip8->PC = NNN(opcode);    				// jump to the function
-    NEXT;
 }
 void chip8_op_skip_if_Vx_eq_NN(Chip8* chip8, uint16_t opcode)
 {
