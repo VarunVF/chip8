@@ -10,6 +10,8 @@
 #define CHIP8_STACK_SIZE 256
 #define CHIP8_DISPLAY_WIDTH 64
 #define CHIP8_DISPLAY_HEIGHT 32
+#define CHIP8_TIMER_FREQ 60.0
+#define CHIP8_CYCLES_PER_SECOND 600
 
 typedef struct Chip8 {
     uint8_t memory[CHIP8_MEMORY_SIZE];
@@ -24,6 +26,7 @@ typedef struct Chip8 {
     // Timers
     uint8_t delay_timer;
     uint8_t sound_timer;
+    double timer_accumulator;
 
     // Graphics
     uint8_t display[CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT];
@@ -37,8 +40,9 @@ typedef struct Chip8 {
 typedef void (*Chip8InstructionFunc)(Chip8* chip8, uint16_t opcode);
 
 void chip8_init(Chip8* chip8);
-void chip8_load_rom(Chip8* chip8, const char* file_path);
+int chip8_load_rom(Chip8* chip8, const char* file_path);
 void chip8_emulate_cycle(Chip8* chip8);
+void chip8_update_timers(Chip8* chip8, double delta_time);
 Chip8InstructionFunc chip8_decode(Chip8* chip8, uint16_t opcode);
 
 #endif // CHIP8_H

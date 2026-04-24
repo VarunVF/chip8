@@ -44,16 +44,16 @@ void chip8_init(Chip8* chip8)
     }
 
     // seed rng
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 }
 
-void chip8_load_rom(Chip8* chip8, const char* file_path)
+int chip8_load_rom(Chip8* chip8, const char* file_path)
 {
     // Open rom file to read bytes
     FILE* fp = fopen(file_path, "rb");
     if (fp == NULL) {
         fprintf(stderr, "Could not read ROM file '%s'\n", file_path);
-        return;
+        return 0;
     }
 
     // Find file size
@@ -71,10 +71,15 @@ void chip8_load_rom(Chip8* chip8, const char* file_path)
     }
 
     fclose(fp);
+    return 1;
 }
 
 void chip8_emulate_cycle(Chip8* chip8)
 {
+#ifndef NDEBUG
+    printf("Instruction at 0x%04X: ", chip8->PC);
+#endif
+
     // Fetch. Each opcode is two bytes long and stored in big-endian.
     uint8_t first_byte  = chip8->memory[chip8->PC];
     uint8_t second_byte = chip8->memory[chip8->PC + 1];
@@ -89,6 +94,28 @@ void chip8_emulate_cycle(Chip8* chip8)
     } else {
         fprintf(stderr, "Unknown instruction: 0x%04X\n", opcode);
         exit(EXIT_FAILURE);
+    }
+}
+
+void chip8_update_timers(Chip8* chip8, double delta_time)
+{
+    chip8->timer_accumulator += delta_time;
+
+    if (chip8->timer_accumulator >= 1.0 / CHIP8_TIMER_FREQ) {
+        // Update Delay Timer
+        if (chip8->delay_timer > 0) {
+            chip8->delay_timer--;
+        }
+
+        // Update Sound Timer
+        if (chip8->sound_timer > 0) {
+            // TODO: play beep sound
+            chip8->sound_timer--;
+        } else {
+            // TODO: stop beep sound
+        }
+
+        chip8->timer_accumulator -= 1.0 / CHIP8_TIMER_FREQ;
     }
 }
 

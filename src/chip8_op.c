@@ -28,14 +28,18 @@
 
 void chip8_op_clear_display(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("CLS\n");
+#endif
 
     memset(chip8->display, 0, sizeof(chip8->display));
     NEXT;
 }
 void chip8_op_return(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("RET\n");
+#endif
 
     // Pop off the call stack
     assert(chip8->SP > 0);
@@ -49,12 +53,17 @@ void chip8_op_return(Chip8* chip8, uint16_t opcode)
 
 void chip8_op_jump(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("JP 0x%03X\n", NNN(opcode));
+#endif
+
     chip8->PC = NNN(opcode);
 }
 void chip8_op_call(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("CALL 0x%03X\n", NNN(opcode));
+#endif
 
     // Push onto the call stack
     assert(chip8->SP < CHIP8_STACK_SIZE);
@@ -65,7 +74,9 @@ void chip8_op_call(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_skip_if_Vx_eq_NN(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SE Vx, 0x%02X\n", NN(opcode));
+#endif
 
     uint8_t x = X(opcode);
     uint8_t nn = NN(opcode);
@@ -77,7 +88,9 @@ void chip8_op_skip_if_Vx_eq_NN(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_skip_if_Vx_ne_NN(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SNE Vx, 0x%02X\n", NN(opcode));
+#endif
     
     uint8_t x = X(opcode);
     uint8_t nn = NN(opcode);
@@ -89,7 +102,9 @@ void chip8_op_skip_if_Vx_ne_NN(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_skip_if_Vx_eq_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SE Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -101,7 +116,9 @@ void chip8_op_skip_if_Vx_eq_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_Vx_to_NN(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD Vx, 0x%02X\n", NN(opcode));
+#endif
 
     uint8_t x = X(opcode);
     chip8->V[x] = NN(opcode);
@@ -109,7 +126,9 @@ void chip8_op_set_Vx_to_NN(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_add_NN_to_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("ADD Vx, 0x%02X\n", NN(opcode));
+#endif
 
     uint8_t x = X(opcode);
     chip8->V[x] += NN(opcode);
@@ -120,7 +139,9 @@ void chip8_op_add_NN_to_Vx(Chip8* chip8, uint16_t opcode)
 
 void chip8_op_set_Vx_to_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -129,7 +150,9 @@ void chip8_op_set_Vx_to_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_Vx_to_Vx_or_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("OR Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -138,7 +161,9 @@ void chip8_op_set_Vx_to_Vx_or_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_Vx_to_Vx_and_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("AND Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -147,7 +172,9 @@ void chip8_op_set_Vx_to_Vx_and_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_Vx_to_Vx_xor_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("XOR Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -156,8 +183,10 @@ void chip8_op_set_Vx_to_Vx_xor_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_add_Vy_to_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("ADD Vx, Vy\n");
-    
+#endif
+
     // VF is set to 1 when there is overflow, and 0 when there is not.
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
@@ -175,7 +204,9 @@ void chip8_op_add_Vy_to_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_subtract_Vy_from_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SUB Vx, Vy\n");
+#endif
 
     // VF is set to 0 when there is underflow, and 1 when there is not.
     // i.e. VF set to 1 if VX >= VY and 0 if not.
@@ -194,7 +225,9 @@ void chip8_op_subtract_Vy_from_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_right_shift_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SHR Vx\n");
+#endif
 
     // Store the bit that is about to be 'dropped' in VF before shifting
     uint8_t x = X(opcode);
@@ -207,7 +240,9 @@ void chip8_op_right_shift_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_Vx_to_Vy_minus_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SUBN Vx, Vy\n");
+#endif
 
     // VF set to 1 if VY >= VX, or 0 otherwise.
     uint8_t x = X(opcode);
@@ -226,8 +261,10 @@ void chip8_op_set_Vx_to_Vy_minus_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_left_shift_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SHL Vx\n");
-    
+#endif
+
     // Store the bit that is about to be 'dropped' in VF before shifting
     uint8_t x = X(opcode);
     chip8->V[0xF] = chip8->V[x] & 128;          // MSB of Vx
@@ -242,11 +279,13 @@ void chip8_op_left_shift_Vx(Chip8* chip8, uint16_t opcode)
 
 void chip8_op_skip_if_Vx_ne_Vy(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SNE Vx, Vy\n");
+#endif
 
     uint8_t x = X(opcode);
     uint8_t y = Y(opcode);
-    if (chip8->V[x] == chip8->V[y]) {
+    if (chip8->V[x] != chip8->V[y]) {
         NEXT;                                   // Skip the next instruction
     }
 
@@ -254,21 +293,27 @@ void chip8_op_skip_if_Vx_ne_Vy(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_I_to_NNN(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD I, 0x%03X\n", NNN(opcode));
+#endif
 
     chip8->I = NNN(opcode);
     NEXT;
 }
 void chip8_op_jump_to_NNN_plus_V0(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("JP V0, 0x%03X\n", NNN(opcode));
+#endif
 
     chip8->PC = NNN(opcode) + chip8->V[0];
     NEXT;
 }
 void chip8_op_set_Vx_to_rand_and_NN(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("RAND Vx, 0x%02X\n", NN(opcode));
+#endif
 
     uint8_t x = X(opcode);
     uint8_t random_byte = rand() % 256;
@@ -277,7 +322,9 @@ void chip8_op_set_Vx_to_rand_and_NN(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_draw(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("DRAW Vx, Vy, 0x%1X\n", N(opcode));
+#endif
 
     // Draw a sprite at coordinate (Vx, Vy) with a width of 8 px and a height of N px.
     // Each row of 8 pixels is read as bit-coded starting from memory location I.
@@ -315,7 +362,9 @@ void chip8_op_draw(Chip8* chip8, uint16_t opcode)
 
 void chip8_op_skip_if_Vx_key_pressed(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SKP Vx\n");
+#endif
 
     uint8_t key = chip8->V[X(opcode)];
     if (chip8->keys[key]) {
@@ -325,8 +374,10 @@ void chip8_op_skip_if_Vx_key_pressed(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_skip_if_Vx_key_not_pressed(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("SKNP Vx\n");
-    
+#endif
+
     uint8_t key = chip8->V[X(opcode)];
     if (!chip8->keys[key]) {
         NEXT;                                   // Skip the next instruction
@@ -335,14 +386,18 @@ void chip8_op_skip_if_Vx_key_not_pressed(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_get_delay_timer_in_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD Vx, DT\n");
+#endif
 
     chip8->V[X(opcode)] = chip8->delay_timer;
     NEXT;
 }
 void chip8_op_get_keypress_in_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD Vx, K\n");
+#endif
 
     // This instruction blocks until a key is pressed.
 
@@ -366,28 +421,36 @@ void chip8_op_get_keypress_in_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_set_delay_timer_to_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD DT, Vx\n");
+#endif
 
     chip8->delay_timer = chip8->V[X(opcode)];
     NEXT;
 }
 void chip8_op_set_sound_timer_to_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD ST, Vx\n");
+#endif
 
     chip8->sound_timer = chip8->V[X(opcode)];
     NEXT;
 }
 void chip8_op_add_Vx_to_I(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("ADD I, Vx\n");
+#endif
 
     chip8->I += chip8->V[X(opcode)];
     NEXT;
 }
 void chip8_op_set_I_to_sprite_address_in_Vx(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LDSPR, Vx\n");
+#endif
 
     // Ensure each character is in 0x0 to 0xF
     uint8_t character = chip8->V[X(opcode)];
@@ -396,7 +459,9 @@ void chip8_op_set_I_to_sprite_address_in_Vx(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_store_Vx_as_BCD_at_address_in_I(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LDBCD Vx\n");
+#endif
 
     // Store the binary-coded decimal representation of Vx
     uint8_t x = X(opcode);
@@ -409,7 +474,9 @@ void chip8_op_store_Vx_as_BCD_at_address_in_I(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_reg_dump(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD [I], Vx\n");
+#endif
 
     // Stores from V0 to VX (including VX) in memory, starting at address I
     uint8_t x = X(opcode);
@@ -422,7 +489,9 @@ void chip8_op_reg_dump(Chip8* chip8, uint16_t opcode)
 }
 void chip8_op_reg_load(Chip8* chip8, uint16_t opcode)
 {
+#ifndef NDEBUG
     printf("LD Vx, [I]\n");
+#endif
 
     // Fills from V0 to VX (including VX) with values from memory, starting at address I
     uint8_t x = X(opcode);
