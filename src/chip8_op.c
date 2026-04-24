@@ -316,11 +316,21 @@ void chip8_op_draw(Chip8* chip8, uint16_t opcode)
 void chip8_op_skip_if_Vx_key_pressed(Chip8* chip8, uint16_t opcode)
 {
     printf("SKP Vx\n");
+
+    uint8_t key = chip8->V[X(opcode)];
+    if (chip8->keys[key]) {
+        NEXT;                                   // Skip the next instruction
+    }
     NEXT;
 }
 void chip8_op_skip_if_Vx_key_not_pressed(Chip8* chip8, uint16_t opcode)
 {
     printf("SKNP Vx\n");
+    
+    uint8_t key = chip8->V[X(opcode)];
+    if (!chip8->keys[key]) {
+        NEXT;                                   // Skip the next instruction
+    }
     NEXT;
 }
 void chip8_op_get_delay_timer_in_Vx(Chip8* chip8, uint16_t opcode)
@@ -333,6 +343,25 @@ void chip8_op_get_delay_timer_in_Vx(Chip8* chip8, uint16_t opcode)
 void chip8_op_get_keypress_in_Vx(Chip8* chip8, uint16_t opcode)
 {
     printf("LD Vx, K\n");
+
+    // This instruction blocks until a key is pressed.
+
+    int key_pressed = 0;
+
+    for (int i = 0; i < 16; i++) {
+        if (chip8->keys[i]) {
+            chip8->V[X(opcode)] = i;
+            key_pressed = 1;
+            break;
+        }
+    }
+
+    // If no key is down, return without calling NEXT.
+    // The PC stays on this opcode and the CPU runs it again next cycle.
+    if (!key_pressed) {
+        return;
+    }
+
     NEXT;
 }
 void chip8_op_set_delay_timer_to_Vx(Chip8* chip8, uint16_t opcode)

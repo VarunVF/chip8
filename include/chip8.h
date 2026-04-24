@@ -28,7 +28,10 @@ typedef struct Chip8 {
     // Graphics
     uint8_t display[CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT];
 
-    // TODO: Input, Sound
+    // Input
+    uint8_t keys[16];
+
+    // TODO: Sound
 } Chip8;
 
 typedef void (*Chip8InstructionFunc)(Chip8* chip8, uint16_t opcode);
