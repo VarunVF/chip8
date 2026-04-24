@@ -24,5 +24,10 @@ int main(int argc, char* argv[])
     printf("Loading ROM: '%s'\n", rom_file);
     chip8_load_rom(&chip8, rom_file);
 
+    while (1) {
+        printf("Instruction at 0x%04X:\n", chip8.PC);
+        chip8_emulate_cycle(&chip8);
+    }
+
     return 0;
 }
