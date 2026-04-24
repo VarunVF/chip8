@@ -89,53 +89,53 @@ Chip8InstructionFunc chip8_decode(Chip8* chip8, uint16_t opcode)
         case 0x2:
             return chip8_op_call;
         case 0x3:
-            return chip8_op_skip_if_VX_eq_NN;
+            return chip8_op_skip_if_Vx_eq_NN;
         case 0x4:
-            return chip8_op_skip_if_VX_ne_NN;
+            return chip8_op_skip_if_Vx_ne_NN;
         case 0x5:
-            return chip8_op_skip_if_VX_eq_VY;
+            return chip8_op_skip_if_Vx_eq_Vy;
         case 0x6:
-            return chip8_op_set_VX_to_NN;
+            return chip8_op_set_Vx_to_NN;
         case 0x7:
-            return chip8_op_add_NN_to_VX;
+            return chip8_op_add_NN_to_Vx;
         case 0x8:
             switch (last_nibble) {
-            case 0x0: return chip8_op_set_VX_to_VY;
-            case 0x1: return chip8_op_set_VX_to_VX_or_VY;
-            case 0x2: return chip8_op_set_VX_to_VX_and_VY;
-            case 0x3: return chip8_op_set_VX_to_VX_xor_VY;
-            case 0x4: return chip8_op_add_VY_to_VX;
-            case 0x5: return chip8_op_subtract_VY_from_VX;
-            case 0x6: return chip8_op_right_shift_VX;
-            case 0x7: return chip8_op_set_VX_to_VY_minus_VX;
-            case 0xE: return chip8_op_left_shift_VX;
+            case 0x0: return chip8_op_set_Vx_to_Vy;
+            case 0x1: return chip8_op_set_Vx_to_Vx_or_Vy;
+            case 0x2: return chip8_op_set_Vx_to_Vx_and_Vy;
+            case 0x3: return chip8_op_set_Vx_to_Vx_xor_Vy;
+            case 0x4: return chip8_op_add_Vy_to_Vx;
+            case 0x5: return chip8_op_subtract_Vy_from_Vx;
+            case 0x6: return chip8_op_right_shift_Vx;
+            case 0x7: return chip8_op_set_Vx_to_Vy_minus_Vx;
+            case 0xE: return chip8_op_left_shift_Vx;
             default:  return NULL;
             }
         case 0x9:
-            return chip8_op_skip_if_VX_ne_VY;
+            return chip8_op_skip_if_Vx_ne_Vy;
         case 0xA:
             return chip8_op_set_I_to_NNN;
         case 0xB:
             return chip8_op_jump_to_NNN_plus_V0;
         case 0xC:
-            return chip8_op_set_VX_to_rand_and_NN;
+            return chip8_op_set_Vx_to_rand_and_NN;
         case 0xD:
             return chip8_op_draw;
         case 0xE:
             switch (second_byte) {
-            case 0x9E: return chip8_op_skip_if_VX_key_pressed;
-            case 0xA1: return chip8_op_skip_if_VX_key_not_pressed;
+            case 0x9E: return chip8_op_skip_if_Vx_key_pressed;
+            case 0xA1: return chip8_op_skip_if_Vx_key_not_pressed;
             default: return NULL;
             }
         case 0xF:
             switch (second_byte) {
-            case 0x07: return chip8_op_get_delay_timer_in_VX;
-            case 0x0A: return chip8_op_get_keypress_in_VX;
-            case 0x15: return chip8_op_set_delay_timer_to_VX;
-            case 0x18: return chip8_op_set_sound_timer_to_VX;
-            case 0x1E: return chip8_op_add_VX_to_I;
-            case 0x29: return chip8_op_set_I_to_sprite_address_in_VX;
-            case 0x33: return chip8_op_store_VX_as_BCD_at_address_in_I;
+            case 0x07: return chip8_op_get_delay_timer_in_Vx;
+            case 0x0A: return chip8_op_get_keypress_in_Vx;
+            case 0x15: return chip8_op_set_delay_timer_to_Vx;
+            case 0x18: return chip8_op_set_sound_timer_to_Vx;
+            case 0x1E: return chip8_op_add_Vx_to_I;
+            case 0x29: return chip8_op_set_I_to_sprite_address_in_Vx;
+            case 0x33: return chip8_op_store_Vx_as_BCD_at_address_in_I;
             case 0x55: return chip8_op_reg_dump;
             case 0x65: return chip8_op_reg_load;
             }
