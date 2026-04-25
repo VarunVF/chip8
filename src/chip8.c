@@ -1,5 +1,6 @@
 #include "chip8.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,24 +50,64 @@ const int key_map[16] = {
 };
 
 
-void chip8_init(Chip8* chip8)
+Chip8* chip8_init()
 {
+    // Init CHIP-8
+    Chip8* chip8 = malloc(sizeof(Chip8));
     if (chip8 == NULL) {
-        return;
+        return NULL;
     }
+    memset(chip8, 0, sizeof(*chip8));
 
-    memset(chip8, 0, sizeof(chip8));
-    // TODO: load fontset into first portion of memory
+    // Init graphics window
+    InitWindow(64 * CHIP8_DISPLAY_SCALE, 32 * CHIP8_DISPLAY_SCALE, "CHIP-8");
+    SetTargetFPS(CHIP8_DISPLAY_TARGET_FPS);
 
+    // Init PC to start of ROM
     chip8->PC = CHIP8_ROM_OFFSET;
     
     // Init fontset
     for (int i = 0; i < 80; i++) {
         chip8->memory[i] = fontset[i];
     }
+    
+    // Init audio
+    InitAudioDevice();
+    SetAudioStreamBufferSizeDefault(CHIP8_AUDIO_BUFFER_SIZE);
+    chip8->audio_stream = LoadAudioStream(CHIP8_AUDIO_SAMPLE_RATE, 32, 1);
+    SetAudioStreamVolume(chip8->audio_stream, 0.5f);
+    PlayAudioStream(chip8->audio_stream);
+    chip8->sound_wave_type = CHIP8_SQUARE_WAVE;
+    chip8->sine_frequency = 440;
+    chip8->sine_index = 0;
 
-    // seed rng
+    // Seed rng (used for CXNN instruction)
     srand((unsigned int)time(NULL));
+
+    return chip8;
+}
+
+void chip8_free(Chip8* chip8)
+{
+    // Free audio
+    UnloadAudioStream(chip8->audio_stream);
+    CloseAudioDevice();
+
+    // Free window
+    CloseWindow();
+
+    // Free CHIP-8
+    free(chip8);
+}
+
+int chip8_should_close(Chip8* chip8)
+{
+    return WindowShouldClose();
+}
+
+void chip8_set_sound_wave_type(Chip8* chip8, enum Chip8SoundWaveType type)
+{
+    chip8->sound_wave_type = type;
 }
 
 int chip8_load_rom(Chip8* chip8, const char* file_path)
@@ -74,8 +115,7 @@ int chip8_load_rom(Chip8* chip8, const char* file_path)
     // Open rom file to read bytes
     FILE* fp = fopen(file_path, "rb");
     if (fp == NULL) {
-        fprintf(stderr, "Could not read ROM file '%s'\n", file_path);
-        return 0;
+        return CHIP8_ERR_ROM_FILE;
     }
 
     // Find file size
@@ -89,11 +129,11 @@ int chip8_load_rom(Chip8* chip8, const char* file_path)
         fread(start, sizeof(uint8_t), rom_size, fp);
     }
     else {
-        fprintf(stderr, "ROM file '%s' is too large to fit in memory\n", file_path);
+        return CHIP8_ERR_ROM_SIZE;
     }
 
     fclose(fp);
-    return 1;
+    return CHIP8_OK;
 }
 
 void chip8_emulate_cycle(Chip8* chip8)
@@ -114,35 +154,42 @@ void chip8_emulate_cycle(Chip8* chip8)
     if (func) {
         func(chip8, opcode);
     } else {
+#ifndef NDEBUG
         fprintf(stderr, "Unknown instruction: 0x%04X\n", opcode);
+#endif
         exit(EXIT_FAILURE);
     }
 }
 
-void chip8_update_timers(Chip8* chip8, double delta_time)
+void chip8_emulate_frame(Chip8* chip8)
 {
-    chip8->timer_accumulator += delta_time;
+    const int cycles_per_frame = CHIP8_CYCLES_PER_SECOND / CHIP8_DISPLAY_TARGET_FPS;
+    for (int i = 0; i < cycles_per_frame; i++) {
+        chip8_emulate_cycle(chip8);
+    }
+}
+
+void chip8_update_timers(Chip8* chip8)
+{
+    chip8->timer_accumulator += GetFrameTime();
 
     if (chip8->timer_accumulator >= 1.0 / CHIP8_TIMER_FREQ) {
-        // Update Delay Timer
+        // Sound and Delay timers count down at 60Hz.
         if (chip8->delay_timer > 0) {
             chip8->delay_timer--;
         }
-
-        // Update Sound Timer
         if (chip8->sound_timer > 0) {
-            // TODO: play beep sound
             chip8->sound_timer--;
-        } else {
-            // TODO: stop beep sound
         }
 
         chip8->timer_accumulator -= 1.0 / CHIP8_TIMER_FREQ;
     }
 }
 
-void chip8_update_graphics(Chip8* chip8, int scale)
+void chip8_update_graphics(Chip8* chip8)
 {
+    int scale = CHIP8_DISPLAY_SCALE;
+
     BeginDrawing();
     ClearBackground(BLACK);
     for (int y = 0; y < 32; y++) {
@@ -154,6 +201,35 @@ void chip8_update_graphics(Chip8* chip8, int scale)
     }
     EndDrawing();
 }
+
+void chip8_update_audio(Chip8* chip8)
+{
+    if (IsAudioStreamProcessed(chip8->audio_stream)) {
+        for (int i = 0; i < CHIP8_AUDIO_BUFFER_SIZE; i++) {
+            if (chip8->sound_timer > 0) {
+                float wavelength = (float)CHIP8_AUDIO_SAMPLE_RATE / chip8->sine_frequency;
+                if (chip8->sound_wave_type == CHIP8_SQUARE_WAVE) {
+                    chip8->audio_buffer[i] = sinf(2 * PI * chip8->sine_index / wavelength) > 0.0f ? 1.0f : -1.0f;
+                } else if (chip8->sound_wave_type == CHIP8_SINE_WAVE) {
+                    chip8->audio_buffer[i] = sinf(2 * PI * chip8->sine_index / wavelength);
+                }
+
+                chip8->sine_index++;
+                if (chip8->sine_index >= wavelength) {
+                    chip8->sine_index = 0;
+                }
+            }
+            else {
+                // Fill with silence if timer is 0
+                chip8->audio_buffer[i] = 0.0f;
+                chip8->sine_index = 0;
+            }
+        }
+
+        UpdateAudioStream(chip8->audio_stream, chip8->audio_buffer, CHIP8_AUDIO_BUFFER_SIZE);
+    }
+}
+
 
 void chip8_update_keys(Chip8* chip8) {
     for (int i = 0; i < 16; i++) {
@@ -167,8 +243,8 @@ void chip8_update_keys(Chip8* chip8) {
 
 Chip8InstructionFunc chip8_decode(Chip8* chip8, uint16_t opcode)
 {
-    uint8_t first_nibble  = (opcode & 0xF000) >> 12;
-    uint8_t last_nibble   =  opcode & 0x000F;
+    uint8_t first_nibble = (opcode & 0xF000) >> 12;
+    uint8_t last_nibble  =  opcode & 0x000F;
 
     uint8_t second_byte = opcode & 0x00FF;
 
