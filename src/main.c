@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
     while (!chip8_should_close(chip8)) {
         chip8_update_keys(chip8);
         chip8_emulate_frame(chip8);
+        chip8_update_audio(chip8);
         chip8_update_timers(chip8);
         chip8_update_graphics(chip8);
-        chip8_update_audio(chip8);
     }
 
     chip8_free(chip8);

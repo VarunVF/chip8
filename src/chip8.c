@@ -204,7 +204,7 @@ void chip8_update_graphics(Chip8* chip8)
 
 void chip8_update_audio(Chip8* chip8)
 {
-    if (IsAudioStreamProcessed(chip8->audio_stream)) {
+    while (IsAudioStreamProcessed(chip8->audio_stream)) {
         for (int i = 0; i < CHIP8_AUDIO_BUFFER_SIZE; i++) {
             if (chip8->sound_timer > 0) {
                 float wavelength = (float)CHIP8_AUDIO_SAMPLE_RATE / chip8->sine_frequency;
