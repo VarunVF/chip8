@@ -5,7 +5,7 @@
 
 void usage(void)
 {
-    fprintf(stderr, "Usage: chip8 <ROM_FILE>\n");
+    fprintf(stderr, "Usage: chip8 ROM_FILE\n");
 }
 
 int main(int argc, char* argv[])
@@ -21,6 +21,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Error: Failed to allocate a CHIP-8\n");
         return EXIT_FAILURE;
     }
+    chip8_set_background_color(chip8, (Color) { 5, 40, 5, 255 });
+    chip8_set_draw_color(chip8, (Color) { 70, 225, 70, 255 });
     chip8_set_sound_wave_type(chip8, CHIP8_SQUARE_WAVE);
 
     printf("Loading ROM: '%s'\n", rom_file);

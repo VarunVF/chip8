@@ -70,6 +70,10 @@ Chip8* chip8_init()
     for (int i = 0; i < 80; i++) {
         chip8->memory[i] = fontset[i];
     }
+
+    // Default colors
+    chip8->background_color = BLACK;
+    chip8->draw_color = WHITE;
     
     // Init audio
     InitAudioDevice();
@@ -108,6 +112,16 @@ int chip8_should_close(Chip8* chip8)
 void chip8_set_sound_wave_type(Chip8* chip8, enum Chip8SoundWaveType type)
 {
     chip8->sound_wave_type = type;
+}
+
+void chip8_set_background_color(Chip8* chip8, Color color)
+{
+    chip8->background_color = color;
+}
+
+void chip8_set_draw_color(Chip8* chip8, Color color)
+{
+    chip8->draw_color = color;
 }
 
 int chip8_load_rom(Chip8* chip8, const char* file_path)
@@ -191,11 +205,11 @@ void chip8_update_graphics(Chip8* chip8)
     int scale = CHIP8_DISPLAY_SCALE;
 
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(chip8->background_color);
     for (int y = 0; y < 32; y++) {
         for (int x = 0; x < 64; x++) {
             if (chip8->display[y * 64 + x]) {
-                DrawRectangle(x * scale, y * scale, scale, scale, WHITE);
+                DrawRectangle(x * scale, y * scale, scale, scale, chip8->draw_color);
             }
         }
     }

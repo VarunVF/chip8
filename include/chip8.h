@@ -54,6 +54,8 @@ typedef struct Chip8 {
 
     // Graphics
     uint8_t display[CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT];
+    Color background_color;
+    Color draw_color;
 
     // Input
     uint8_t keys[16];
@@ -74,6 +76,8 @@ Chip8* chip8_init();
 void chip8_free(Chip8* chip8);
 int chip8_should_close(Chip8* chip8);
 void chip8_set_sound_wave_type(Chip8* chip8, enum Chip8SoundWaveType type);
+void chip8_set_background_color(Chip8* chip8, Color color);
+void chip8_set_draw_color(Chip8* chip8, Color color);
 int chip8_load_rom(Chip8* chip8, const char* file_path);
 void chip8_emulate_cycle(Chip8* chip8);
 void chip8_emulate_frame(Chip8* chip8);
