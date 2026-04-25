@@ -57,6 +57,8 @@ typedef struct Chip8 {
 
     // Input
     uint8_t keys[16];
+    uint8_t is_awaiting_release;
+    uint8_t waiting_key;
 
     // Sound
     AudioStream audio_stream;

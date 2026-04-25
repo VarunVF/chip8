@@ -413,24 +413,32 @@ void chip8_op_get_keypress_in_Vx(Chip8* chip8, uint16_t opcode)
 #endif
 
     // This instruction blocks until a key is pressed.
+    uint8_t x = X(opcode);
 
-    int key_pressed = 0;
-
-    for (int i = 0; i < 16; i++) {
-        if (chip8->keys[i]) {
-            chip8->V[X(opcode)] = i;
-            key_pressed = 1;
-            break;
+    // A key is being held down
+    if (chip8->is_awaiting_release) {
+        if (!chip8->keys[chip8->waiting_key]) {
+            // The key was released
+            chip8->V[x] = chip8->waiting_key;
+            chip8->is_awaiting_release = 0;
+            NEXT;
         }
-    }
 
-    // If no key is down, return without calling NEXT.
-    // The PC stays on this opcode and the CPU runs it again next cycle.
-    if (!key_pressed) {
+        // Key still down, stay on this PC
         return;
     }
 
-    NEXT;
+    // We aren't waiting yet, check for a press
+    for (int i = 0; i < 16; i++) {
+        if (chip8->keys[i]) {
+            chip8->is_awaiting_release = 1;
+            chip8->waiting_key = i;
+            return;  // stay on this PC, need to wait for release
+        }
+    }
+
+    // No key is down, stay on this PC
+    return;
 }
 void chip8_op_set_delay_timer_to_Vx(Chip8* chip8, uint16_t opcode)
 {
